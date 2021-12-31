@@ -22,3 +22,13 @@
 # # In your application, call
 # # `Application.settings.support_email` anywhere you need it.
 # ```
+
+module Application
+  Habitat.create do
+    setting importmap : ImportMap
+  end
+end
+
+Application.configure do |settings|
+  settings.importmap = ImportMap.from_json File.read(Path.new(Dir.current, "public/importmap.json"))
+end

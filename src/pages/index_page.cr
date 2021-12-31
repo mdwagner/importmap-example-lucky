@@ -1,7 +1,7 @@
 class IndexPage < MainLayout
   def content
     div class: "p-2" do
-      h1 class: "text-3xl font-bold underline text-clifford" do
+      h1 class: "text-3xl font-bold underline text-red-600" do
         text "Hello World!"
       end
       div x_data: "{ count: 0 }" do
@@ -9,7 +9,7 @@ class IndexPage < MainLayout
           text "Increment"
         end
         br
-        span x_text: "count", class: "text-clifford text-2xl"
+        span x_text: "count", class: "text-green-600 text-4xl"
       end
     end
   end
