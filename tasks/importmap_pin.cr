@@ -63,7 +63,7 @@ class ImportmapPin < LuckyTask::Task
       end
 
       importmap_query.imports.each do |package, path|
-        puts %(Pinning "#{package} to #{path}") if URI.parse(path).scheme
+        puts %(Pinning "#{package}" to #{path}) if URI.parse(path).scheme
         importmap_json.imports[package] = path
       end
 

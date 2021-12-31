@@ -22,15 +22,17 @@ class ImportmapUnpin < LuckyTask::Task
 
       asset_path = importmap_json.imports[package]
 
-      next if URI.parse(asset_path).scheme
+      if URI.parse(asset_path).scheme
+        puts %(Unpinning "#{package}")
+      else
+        realpath = Path.new(Dir.current, "public", asset_path)
 
-      realpath = Path.new(Dir.current, "public", asset_path)
+        puts %(Unpinning and removing "#{package}")
 
-      puts %(Unpinning and removing "#{package}")
+        FileUtils.rm realpath
+      end
 
       importmap_json.imports.delete package
-
-      FileUtils.rm realpath
     end
 
     File.write(importmap_path, importmap_json.to_pretty_json)
