@@ -45,7 +45,7 @@ shards:
     version: 0.4.7
 
   importmap:
-    git: https://github.com/mdwagner/importmap.git
+    git: https://github.com/mdwagner/importmap-cr.git
     version: 0.1.0+git.commit.1f0383f645e63722b50301da7d542b88e304cc47
 
   lucky:

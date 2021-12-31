@@ -30,7 +30,7 @@ dependencies:
     github: luckyframework/lucky_task
     version: ~> 0.1.1
   importmap:
-    github: mdwagner/importmap
+    github: mdwagner/importmap-cr
 development_dependencies:
   lucky_flow:
     github: luckyframework/lucky_flow

@@ -9,12 +9,6 @@ Ujs.start();
 import Turbolinks from "turbolinks";
 Turbolinks.start();
 
-// If using Turbolinks, you can attach events to page load like this:
-//
-// document.addEventListener("turbolinks:load", function() {
-//   ...
-// })
-
 import Alpine from "alpinejs";
 window.Alpine = Alpine;
 Alpine.start();
@@ -22,4 +16,4 @@ Alpine.start();
 import React from "react";
 window.React = React;
 
-import "./other.js"
+import "./other.js";

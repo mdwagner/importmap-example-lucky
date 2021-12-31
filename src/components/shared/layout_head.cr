@@ -7,9 +7,9 @@ class Shared::LayoutHead < BaseComponent
       title "My App - #{@page_title}"
 
       js_link "https://cdn.tailwindcss.com"
-      es_module_shims
 
-      raw Application.settings.importmap.to_importmap_html_tags
+      es_module_shims
+      importmap_html_tags
 
       js_link asset("js/app.js"),
               type: "module",
@@ -25,5 +25,10 @@ class Shared::LayoutHead < BaseComponent
   private def es_module_shims
     src = Application.settings.importmap.json.imports["es-module-shims"]
     js_link src, crossorigin: "anonymous", attrs: [:async]
+  end
+
+  private def importmap_html_tags
+    importmap = Application.settings.importmap
+    raw importmap.to_importmap_html_tags(true)
   end
 end
