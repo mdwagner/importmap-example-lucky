@@ -2,23 +2,29 @@ require "http/client"
 require "file_utils"
 
 class ImportmapPin < LuckyTask::Task
-  summary "Pin <package> from CDN to importmap.json"
+  summary "Manage importmap pinning"
   name "importmap.pin"
 
-  switch :download, "Downloads packages to IMPORTMAP_VENDOR"
-  arg :env, "Environment of packages (ex: dev/prod)", shortcut: "-e", optional: true
-  arg :from, "CDN to download from", shortcut: "-f", optional: true
+  switch :download, "Downloads packages to public/assets/js"
+  arg :env, "Environment of packages (default: production)",
+      shortcut: "-e",
+      optional: true
+  arg :from, "CDN to download from (default: jspm)",
+      shortcut: "-f",
+      optional: true
 
   def help_message
     <<-TEXT
-    ENV variables:
-    - LUCKY_IMPORTMAP_PATH => location of importmap.json (defaults to <root>/public/importmap.json)
+    #{summary}
 
-    # Pin "package" CDN to importmap.json
-    $ lucky importmap.pin react
+    Pin package(s) from CDN to importmap.json
+    $ lucky importmap.pin react react-dom
 
-    # Pin "package" from CDN to vendor folder and importmap.json
-    $ lucky importmap.pin react --download
+    Pin (development) package(s) from CDN to importmap.json
+    $ lucky importmap.pin react react-dom -e development
+
+    Vendor package(s) from CDN to importmap.json
+    $ lucky importmap.pin react react-dom --download
     TEXT
   end
 
@@ -36,8 +42,8 @@ class ImportmapPin < LuckyTask::Task
 
     raise json.to_pretty_json unless response.success?
 
-    if imports = json.dig?("map", "imports")
-      fetched_importmap = Importmap::Json.from_json json["map"].to_json
+    if json.dig?("map", "imports")
+      importmap_query = Importmap::Json.from_json json["map"].to_json
 
       importmap_json = (
         if File.exists?(importmap_path)
@@ -48,23 +54,22 @@ class ImportmapPin < LuckyTask::Task
       )
 
       if download?
-        fetched_importmap.imports.each do |package, url|
+        importmap_query.imports.each do |package, url|
           download_package(package, url)
-          fetched_importmap.imports[package] = asset_package_path(package)
+          importmap_query.imports[package] = asset_package_path(package)
         end
-        fetched_importmap.scopes = nil
+        importmap_query.scopes = nil
       end
 
-      fetched_importmap.imports.each do |package, path|
+      importmap_query.imports.each do |package, path|
         importmap_json.imports[package] = path
       end
 
-      if !download? && fetched_importmap.scopes?
+      if !download? && importmap_query.scopes?
         if importmap_json.scopes?
-          # TODO: not sure if merge! is right approach...
-          importmap_json.scopes.merge!(fetched_importmap.scopes)
+          importmap_json.scopes.merge!(importmap_query.scopes)
         else
-          importmap_json.scopes = fetched_importmap.scopes
+          importmap_json.scopes = importmap_query.scopes
         end
       end
 
@@ -97,11 +102,7 @@ class ImportmapPin < LuckyTask::Task
   end
 
   private def importmap_path
-    if path = ENV["LUCKY_IMPORTMAP_PATH"]?
-      Path.new File.expand_path(path)
-    else
-      Path.new(Dir.current, "public/importmap.json")
-    end
+    Path.new(Dir.current, "public/importmap.json")
   end
 
   private def download_package(package, url)
@@ -109,7 +110,9 @@ class ImportmapPin < LuckyTask::Task
 
     response = HTTP::Client.get(url)
     raise "Failed to download #{package}" unless response.success?
-    source = remove_sourcemap_comment_from(response.body)
+
+    version = package_version_from(url)
+    source = modify_content(response.body, version)
 
     File.write(vendored_package_path(package), source)
   end
@@ -126,11 +129,16 @@ class ImportmapPin < LuckyTask::Task
     package.gsub("/", "--") + ".js"
   end
 
-  private def remove_sourcemap_comment_from(source)
-    source.gsub(/\/\/#\s+sourceMappingURL=.*/, "")
+  private def modify_content(source, version = nil)
+    # remove sourcemap comment
+    source = source.gsub(/\/\/#\s+sourceMappingURL=.*/, "")
+
+    # prepend package version
+    source = "/* #{version} */\n" + source if version
+
+    source
   end
 
-  # TODO: need to figure out if this should be included anywere...
   private def package_version_from(url)
     url.match(/@\d+\.\d+\.\d+/).try &.to_a.try(&.first)
   end
@@ -143,40 +151,3 @@ class ImportmapPin < LuckyTask::Task
     asset_host + "assets/js/#{package_filename(package)}"
   end
 end
-
-# class ImportmapUnpin < LuckyTask::Task
-# summary "Unpin <package> from importmap.json and remove local file(s) in vendor folder"
-# name "importmap.unpin"
-
-# def help_message
-# <<-TEXT
-# ENV variables:
-# - IMPORTMAP_PATH => location of importmap.json (defaults to <root>/public/importmap.json)
-
-# # Unpin "package" from importmap.json and remove local files in vendor forlder
-# $ lucky importmap.unpin react
-# TEXT
-# end
-
-# def call
-# end
-# end
-
-# class ImportmapJson < LuckyTask::Task
-# summary "Display importmap.json"
-# name "importmap.json"
-
-# def help_message
-# <<-TEXT
-# #{summary}
-# ENV variables:
-# - IMPORTMAP_PATH => location of importmap.json (defaults to <root>/public/importmap.json)
-
-# # Show importmap.json pretty formatted to STDOUT
-# $ lucky importmap.json
-# TEXT
-# end
-
-# def call
-# end
-# end
