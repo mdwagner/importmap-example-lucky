@@ -2,16 +2,18 @@ class Shared::LayoutHead < BaseComponent
   needs page_title : String
 
   def importmap
-    ImportMap.draw do |t|
-      t.pin "@rails/ujs", to: "https://ga.jspm.io/npm:@rails/ujs@7.0.0/lib/assets/compiled/rails-ujs.js"
-      t.pin "turbolinks", to: "https://ga.jspm.io/npm:turbolinks@5.2.0/dist/turbolinks.js"
-      t.pin "alpinejs", to: "https://ga.jspm.io/npm:alpinejs@3.7.1/dist/module.esm.js"
-      t.pin "react", to: "https://ga.jspm.io/npm:react@18.0.0-rc.0-next-f2a59df48-20211208/index.js"
+    ImportMap.from_json File.read(Path.new(Dir.current, "public/importmap.json"))
 
-      t.scope "https://ga.jspm.io/", {
-        "object-assign" => "https://ga.jspm.io/npm:object-assign@4.1.1/index.js",
-      }
-    end
+    # ImportMap.draw do |t|
+    # t.pin "@rails/ujs", to: "https://ga.jspm.io/npm:@rails/ujs@7.0.0/lib/assets/compiled/rails-ujs.js"
+    # t.pin "turbolinks", to: "https://ga.jspm.io/npm:turbolinks@5.2.0/dist/turbolinks.js"
+    # t.pin "alpinejs", to: "https://ga.jspm.io/npm:alpinejs@3.7.1/dist/module.esm.js"
+    # t.pin "react", to: "https://ga.jspm.io/npm:react@18.0.0-rc.0-next-f2a59df48-20211208/index.js"
+
+    # t.scope "https://ga.jspm.io/", {
+    # "object-assign" => "https://ga.jspm.io/npm:object-assign@4.1.1/index.js",
+    # }
+    # end
   end
 
   def render
