@@ -1,9 +1,3 @@
-#require "lucky_task"
-#require "option_parser"
-#require "colorize"
-#require "yaml"
-#require "../src/lucky/server_settings"
-
 # Based on the sentry shard with some modifications to output and build process.
 module MyLuckySentry
   FILE_TIMESTAMPS  = {} of String => String # {file => timestamp}
@@ -26,12 +20,10 @@ module MyLuckySentry
 
     def initialize(@build_commands : Array(String), @run_commands : Array(String), @files : Array(String), @reload_browser : Bool)
       ws_handler = HTTP::WebSocketHandler.new do |socket|
-        puts "BROWSER CAPTURED"
         @captured_sockets << socket
 
         socket.on_close do
           @captured_sockets.delete(socket)
-          puts "BROWSER CLOSED"
         end
       end
       @ws_server = HTTP::Server.new([ws_handler])
