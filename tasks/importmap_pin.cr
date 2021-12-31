@@ -1,5 +1,6 @@
 require "http/client"
 require "file_utils"
+require "uri"
 
 class ImportmapPin < LuckyTask::Task
   summary "Manage importmap pinning"
@@ -62,6 +63,7 @@ class ImportmapPin < LuckyTask::Task
       end
 
       importmap_query.imports.each do |package, path|
+        puts %(Pinning "#{package} to #{path}") if URI.parse(path).scheme
         importmap_json.imports[package] = path
       end
 
@@ -85,6 +87,10 @@ class ImportmapPin < LuckyTask::Task
 
   private def _env
     env || "production"
+  end
+
+  private def development?
+    _env == "development"
   end
 
   private def _from
@@ -113,8 +119,11 @@ class ImportmapPin < LuckyTask::Task
 
     version = package_version_from(url)
     source = modify_content(response.body, version)
+    path = vendored_package_path(package)
 
-    File.write(vendored_package_path(package), source)
+    puts %(Pinning "#{package}" to #{path} via download from #{url})
+
+    File.write(path, source)
   end
 
   private def update_importmap_json(importmap_json, package, path)
@@ -131,7 +140,7 @@ class ImportmapPin < LuckyTask::Task
 
   private def modify_content(source, version = nil)
     # remove sourcemap comment
-    source = source.gsub(/\/\/#\s+sourceMappingURL=.*/, "")
+    source = source.gsub(/\/\/#\s+sourceMappingURL=.*/, "") unless development?
 
     # prepend package version
     source = "/* #{version} */\n" + source if version
