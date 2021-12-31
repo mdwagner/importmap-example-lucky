@@ -11,6 +11,8 @@ class Shared::LayoutHead < BaseComponent
       es_module_shims
       importmap_html_tags
 
+      connect_to_lucky_watch
+
       js_link asset("js/app.js"),
               type: "module",
               defer: "true",
@@ -30,5 +32,18 @@ class Shared::LayoutHead < BaseComponent
   private def importmap_html_tags
     importmap = Application.settings.importmap
     raw importmap.to_importmap_html_tags(true)
+  end
+
+  private def connect_to_lucky_watch
+    browsersync_port = 3001
+
+    tag "script" do
+      raw <<-JS
+      (function() {
+        var ws = new WebSocket("ws://#{Lucky::ServerSettings.host}:#{browsersync_port}");
+        ws.onmessage = function() { location.reload(); };
+      })();
+      JS
+    end
   end
 end
