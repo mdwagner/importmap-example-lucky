@@ -241,7 +241,6 @@ class LiveReload < LuckyTask::Task
     files << "./public/assets/js/**/*.js"
     # files << "./public/assets/css/**/*.css" # TODO: determine if useful
 
-    # TODO: js files aren't being changed, but reloading works...
     process_runner = MyLuckySentry::ProcessRunner.new(
       files: files,
       build_commands: build_commands,
