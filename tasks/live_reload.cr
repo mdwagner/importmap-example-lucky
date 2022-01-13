@@ -1,7 +1,7 @@
 # Based on the sentry shard with some modifications to output and build process.
 module MyLuckySentry
   FILE_TIMESTAMPS  = {} of String => String # {file => timestamp}
-  BROWSERSYNC_PORT = 3001
+  #BROWSERSYNC_PORT = 3001
 
   class ProcessRunner
     include LuckyTask::TextHelpers
@@ -77,7 +77,7 @@ module MyLuckySentry
     private def browsersync_port_is_available? : Bool
       if File.executable?(`which lsof`.chomp)
         io = IO::Memory.new
-        Process.run("lsof -i :#{BROWSERSYNC_PORT}", output: io, error: STDERR, shell: true)
+        Process.run("lsof -i :#{Lucky::ServerSettings.reload_port}", output: io, error: STDERR, shell: true)
         io.to_s.empty?
       else
         true
@@ -86,8 +86,8 @@ module MyLuckySentry
 
     private def print_browsersync_port_taken_error
       io = IO::Memory.new
-      Process.run("ps -p `lsof -ti :#{BROWSERSYNC_PORT}` -o command", output: io, error: STDERR, shell: true)
-      puts "There was a problem starting browsersync. Port #{BROWSERSYNC_PORT} is in use.".colorize(:red)
+      Process.run("ps -p `lsof -ti :#{Lucky::ServerSettings.reload_port}` -o command", output: io, error: STDERR, shell: true)
+      puts "There was a problem starting browsersync. Port #{Lucky::ServerSettings.reload_port} is in use.".colorize(:red)
       puts <<-ERROR
       Try closing these programs...
         #{io}
@@ -96,7 +96,7 @@ module MyLuckySentry
 
     private def start_browsersync
       unless @ws_server.listening?
-        @ws_server.bind_tcp BROWSERSYNC_PORT
+        @ws_server.bind_tcp Lucky::ServerSettings.reload_port
         spawn { @ws_server.listen }
       end
       #spawn do
@@ -113,6 +113,7 @@ module MyLuckySentry
       STDOUT.puts running_at_background
       STDOUT.puts running_at_message.colorize.on_cyan.black
       STDOUT.puts running_at_background
+      STDOUT.puts "Live Reload running at #{Lucky::ServerSettings.reload_port}"
       STDOUT.puts ""
     end
 

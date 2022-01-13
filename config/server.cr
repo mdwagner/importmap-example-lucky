@@ -64,3 +64,9 @@ private def raise_missing_secret_key_in_production
   puts "Please set the SECRET_KEY_BASE environment variable. You can generate a secret key with 'lucky gen.secret_key'".colorize.red
   exit(1)
 end
+
+module Lucky::ServerSettings
+  def reload_port : Int32
+    ENV["RELOAD_PORT"]?.try(&.to_i) || settings["reload_port"]?.try(&.as_i) || 3001
+  end
+end

@@ -35,12 +35,10 @@ class Shared::LayoutHead < BaseComponent
   end
 
   private def connect_to_lucky_watch
-    browsersync_port = 3001
-
     tag "script" do
       raw <<-JS
       (function() {
-        var ws = new WebSocket("ws://#{Lucky::ServerSettings.host}:#{browsersync_port}");
+        var ws = new WebSocket("ws://#{Lucky::ServerSettings.host}:#{Lucky::ServerSettings.reload_port}");
         ws.onmessage = function() { location.reload(); };
       })();
       JS
